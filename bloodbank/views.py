@@ -3,7 +3,8 @@ from donor.models import Donor
 from django.db.models import Count
 
 def home(request):
-    return render(request, 'home.html')
+    total_donors = Donor.objects.count()
+    return render(request, 'home.html', {'total_donors': total_donors})
 
 def dashboard(request):
     total_donors = Donor.objects.count()

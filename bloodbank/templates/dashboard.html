@@ -1,34 +1,134 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Blood Bank Dashboard</h2>
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h3>{{ total_donors }}</h3>
-                <p>Total Donors</p>
+
+<div class="dashboard-header mb-5">
+    <h1 class="display-5 fw-bold mb-2" style="color: var(--text-primary);">Blood Bank Dashboard</h1>
+    <p class="text-muted">Overview of donors and blood availability</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="stat-card h-100 p-4" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-white-50 mb-2 fw-semibold">Total Donors</p>
+                    <h2 class="display-4 fw-bold text-white mb-0">{{ total_donors }}</h2>
+                </div>
+                <div class="icon-circle" style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;">
+                    👥
+                </div>
+            </div>
+            <div class="mt-3">
+                <small class="text-white-50">Registered blood donors</small>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h3>{{ blood_groups|length }}</h3>
-                <p>Blood Groups</p>
+
+    <div class="col-md-6">
+        <div class="stat-card h-100 p-4" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 20px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-white-50 mb-2 fw-semibold">Blood Groups</p>
+                    <h2 class="display-4 fw-bold text-white mb-0">{{ blood_groups|length }}</h2>
+                </div>
+                <div class="icon-circle" style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;">
+                    🩸
+                </div>
+            </div>
+            <div class="mt-3">
+                <small class="text-white-50">Active blood types</small>
             </div>
         </div>
     </div>
 </div>
 
-<h4 class="mt-4">Blood Group Distribution</h4>
-<table class="table table-striped">
-    <thead>
-        <tr><th>Blood Group</th><th>Donors</th></tr>
-    </thead>
-    <tbody>
-        {% for bg in blood_groups %}
-        <tr><td>{{ bg.blood_group }}</td><td>{{ bg.count }}</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Blood Group Distribution -->
+<div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+    <div class="card-header py-4 px-4" style="background: transparent; border-bottom: 1px solid var(--border-color);">
+        <h4 class="mb-0 fw-bold" style="color: var(--text-primary);">🩸 Blood Group Distribution</h4>
+    </div>
+    <div class="card-body p-4">
+        {% if blood_groups %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr style="border-color: var(--border-color);">
+                            <th style="color: var(--text-primary); font-weight: 600; padding: 16px;">Blood Group</th>
+                            <th style="color: var(--text-primary); font-weight: 600; padding: 16px;">Available Donors</th>
+                            <th style="color: var(--text-primary); font-weight: 600; padding: 16px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bg in blood_groups %}
+                        <tr style="border-color: var(--border-color); transition: all 0.2s ease;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 16px;">
+                                <span class="badge bg-danger fs-6 px-3 py-2" style="border-radius: 50px; font-weight: 600;">
+                                    {{ bg.blood_group }}
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span class="fs-5 fw-bold" style="color: var(--text-primary);">{{ bg.count }}</span>
+                                <span class="text-muted ms-1">donor{{ bg.count|pluralize }}</span>
+                            </td>
+                            <td style="padding: 16px;">
+                                {% if bg.count >= 5 %}
+                                    <span class="badge bg-success px-3 py-2" style="border-radius: 50px;">
+                                        ✓ Good Stock
+                                    </span>
+                                {% elif bg.count >= 2 %}
+                                    <span class="badge bg-warning px-3 py-2" style="border-radius: 50px;">
+                                        ⚠ Low Stock
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger px-3 py-2" style="border-radius: 50px;">
+                                        ⚡ Critical
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 4rem; opacity: 0.3;">🩸</div>
+                <h5 style="color: var(--text-secondary);">No blood group data available</h5>
+                <p class="text-muted">Register donors to see distribution</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.stat-card {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.icon-circle {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .icon-circle {
+    transform: scale(1.1) rotate(10deg);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table > :not(caption) > * > * {
+    background-color: transparent;
+}
+
+.badge {
+    font-weight: 600;
+}
+</style>
+
 {% endblock %}
