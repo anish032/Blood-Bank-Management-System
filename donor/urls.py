@@ -7,4 +7,6 @@ urlpatterns = [
     path('profile/', views.profile, name='donor_profile'),
     path('logout/', views.logout, name='donor_logout'),
     path('history/', views.history, name='donor_history'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
+
 ]
