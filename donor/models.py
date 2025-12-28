@@ -47,3 +47,13 @@ class DonationHistory(models.Model):
     
     def __str__(self):
         return f"{self.donor.user.get_full_name()} - {self.donation_date}"
+    ##########################################################################
+
+#donor/moder.py-mapmodel
+class Hospital(models.Model):
+    name = models.CharField(max_length=200)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+    def __str__(self):
+        return self.name

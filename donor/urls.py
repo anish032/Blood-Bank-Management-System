@@ -8,3 +8,11 @@ urlpatterns = [
     path('logout/', views.logout, name='donor_logout'),
     path('history/', views.history, name='donor_history'),
 ]
+
+urlpatterns = [
+    # PAGE (HTML)
+    path('find-blood/', views.donor_map_page, name='find-blood'),
+
+    # API (JSON)
+    path('map-data/', views.donor_map_data, name='donor-map-data'),
+]

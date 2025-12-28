@@ -77,3 +77,45 @@ def logout(request):
     auth_logout(request)
     messages.success(request, 'Logged out successfully!')
     return redirect('/')
+
+##################################################################################################
+#mapapiadded
+from django.http import JsonResponse
+from .models import Donor
+from .utils import calculate_distance
+
+def donor_map_data(request):
+    blood_group = request.GET.get('blood_group')
+    max_distance = float(request.GET.get('distance', 10))
+
+    user_lat = float(request.GET.get('lat'))
+    user_lng = float(request.GET.get('lng'))
+
+    donors = Donor.objects.filter(is_available=True)
+
+    if blood_group:
+        donors = donors.filter(blood_group=blood_group)
+
+    result = []
+
+    for donor in donors:
+        if donor.latitude and donor.longitude:
+            distance = calculate_distance(
+                user_lat, user_lng,
+                donor.latitude, donor.longitude
+            )
+
+            if distance <= max_distance:
+                result.append({
+                    'name': donor.user.get_full_name(),
+                    'blood_group': donor.blood_group,
+                    'lat': donor.latitude,
+                    'lng': donor.longitude,
+                    'distance': round(distance, 2),
+                })
+
+    return JsonResponse({'donors': result})
+
+def donor_map_page(request):
+    return render(request, 'donor/map.html')
+
