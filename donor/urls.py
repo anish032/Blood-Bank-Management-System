@@ -8,5 +8,8 @@ urlpatterns = [
     path('logout/', views.logout, name='donor_logout'),
     path('history/', views.history, name='donor_history'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
+path('verify-otp/resend/', views.resend_otp, name='resend_otp'),
+path('request-blood/', views.request_blood, name='request_blood'),
+
 
 ]

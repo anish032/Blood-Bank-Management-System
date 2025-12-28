@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.pyc
 
 # Virtual Environment
 env/
@@ -16,7 +17,7 @@ media/
 
 # Environment variables
 .env
-.env.*
+
 
 # IDEs
 .vscode/
@@ -25,3 +26,6 @@ media/
 # OS files
 .DS_Store
 Thumbs.db
+
+
+
