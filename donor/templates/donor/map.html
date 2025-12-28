@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Find Blood Donors</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        #map { height: 500px; }
+    </style>
+</head>
+<body>
+
+<h2>Find Nearby Blood Donors</h2>
+
+<select id="bloodGroup">
+    <option value="">All Blood Groups</option>
+    <option value="A+">A+</option>
+    <option value="O+">O+</option>
+    <option value="O-">O-</option>
+</select>
+
+<select id="distance">
+    <option value="5">5 KM</option>
+    <option value="10">10 KM</option>
+    <option value="20">20 KM</option>
+</select>
+
+<button onclick="loadData()">Search</button>
+
+<div id="map"></div>
+
+<button onclick="setEmergency()">🚨 Emergency</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let map = L.map('map').setView([27.7172, 85.3240], 12);
+let markers = [];
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+function loadData() {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    navigator.geolocation.getCurrentPosition(pos => {
+        let lat = pos.coords.latitude;
+        let lng = pos.coords.longitude;
+
+        let bg = document.getElementById('bloodGroup').value;
+        let dist = document.getElementById('distance').value;
+
+        fetch(`/map-data/?lat=${lat}&lng=${lng}&blood_group=${bg}&distance=${dist}`)
+            .then(res => res.json())
+            .then(data => {
+                data.donors.forEach(d => {
+                    let m = L.marker([d.lat, d.lng])
+                        .bindPopup(`🩸 ${d.name}<br>${d.blood_group}<br>${d.distance} km`);
+                    m.addTo(map);
+                    markers.push(m);
+                });
+            });
+    });
+}
+
+function getMarkerIcon(group) {
+    if (group === 'O+') return '🔴';
+    if (group === 'A+') return '🟢';
+    if (group === 'B+') return '🔵';
+    return '🟣';
+}
+donors.forEach(d => {
+      L.marker([d.lat, d.lng])
+       .addTo(map)
+       .bindPopup(`${getMarkerIcon(d.blood_group)} ${d.name}<br>${d.blood_group}`); 
+  });
+  
+function setEmergency() {
+    document.getElementById('distance').value = 20;
+    loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
