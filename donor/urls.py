@@ -10,8 +10,8 @@ urlpatterns = [
 
     # OTP
     path('verify-otp/', views.verify_otp, name='verify_otp'),
-path('verify-otp/resend/', views.resend_otp, name='resend_otp'),
-path('request-blood/', views.request_blood, name='request_blood'),
+    path('verify-otp/resend/', views.resend_otp, name='resend_otp'),
+    path('request-blood/', views.request_blood, name='request_blood'),
 
 
     # MAP PAGE + API
