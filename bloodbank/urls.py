@@ -8,3 +8,4 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('donor/', include('donor.urls')),
 ]
+path('', include('donor.urls')),
