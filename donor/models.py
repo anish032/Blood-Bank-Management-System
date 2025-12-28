@@ -34,6 +34,8 @@ class Donor(models.Model):
     is_phone_verified = models.BooleanField(default=False)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
 
+
+
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.blood_group}"
 
@@ -43,10 +45,18 @@ class Donor(models.Model):
         days_since = (date.today() - self.last_donation_date).days
         return days_since >= 90
 
+    @property
+    def next_eligible_date(self):
+        if not self.last_donation_date:
+            return "Available Now"
+        return self.last_donation_date + timedelta(days=90)
+
     def generate_otp(self):
         self.otp_code = str(random.randint(100000, 999999))
         self.save()
         return self.otp_code
+
+
 
 class BloodRequest(models.Model):
     STATUS_CHOICES = [

@@ -68,6 +68,13 @@
                                         <span class="fw-semibold" style="color: var(--text-primary);">
                                             {{ donor.phone }}
                                         </span>
+
+                                        {% if donor.is_phone_verified %}
+                                         <span class="badge bg-success ms-2" style="border-radius: 50px; font-size: 0.7rem;">Verified ✅</span>
+                                        {% else %}
+                                        <a href="{% url 'verify_otp' %}" class="badge bg-warning text-dark ms-2 text-decoration-none" style="border-radius: 50px; font-size: 0.7rem;">Verify Now ⚠️</a>
+                                        {% endif %}
+
                                     </div>
                                 </div>
                             </div>
@@ -108,12 +115,27 @@
                 </div>
             </div>
 
+
+
+
+
+
+
+
+
+
             <!-- Quick Actions Card -->
             <div class="col-md-4">
                 <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; background: var(--card-bg);">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4" style="color: var(--text-primary);">Quick Actions</h5>
                         <div class="d-grid gap-3">
+
+                            <a href="{% url 'request_blood' %}" class="btn btn-danger" style="border-radius: 50px; font-weight: 600; padding: 12px;">
+                                🩸 Request Blood
+                            </a>
+
+
                             <a href="/donor/history" class="btn btn-outline-danger" style="border-radius: 50px; font-weight: 600; padding: 12px;">
                                 📋 Donation History
                             </a>
@@ -155,6 +177,52 @@
         </div>
     </div>
 </div>
+
+
+<div class="card border-0 shadow-sm mt-4" style="border-radius: 20px; background: var(--card-bg); color: var(--text-primary); overflow: hidden;">
+    <div class="card-header py-3 border-0" style="background: rgba(125, 125, 125, 0.1);">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">🩸 Your Recent Blood Requests</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="color: inherit;">
+                <thead>
+                    <tr class="border-bottom" style="border-color: var(--border-color) !important; background: rgba(125, 125, 125, 0.05);">
+                        <th class="ps-4 py-3" style="color: var(--text-primary); opacity: 0.9; font-weight: 700;">Date</th>
+                        <th class="py-3" style="color: var(--text-primary); opacity: 0.9; font-weight: 700;">Hospital</th>
+                        <th class="py-3" style="color: var(--text-primary); opacity: 0.9; font-weight: 700;">Group</th>
+                        <th class="py-3" style="color: var(--text-primary); opacity: 0.9; font-weight: 700;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in recent_requests %}
+                    <tr class="border-bottom" style="border-color: var(--border-color) !important;">
+                        <td class="ps-4 py-3" style="color: var(--text-primary);">{{ req.required_date }}</td>
+                        <td style="color: var(--text-primary);">{{ req.hospital.name }}</td>
+                        <td><span class="badge bg-danger shadow-sm">{{ req.blood_group }}</span></td>
+                        <td>
+                            {% if req.status == 'Approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif req.status == 'Pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ req.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <p class="mb-0" style="color: var(--text-secondary); opacity: 0.6;">No requests made yet.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 
 <style>
 .info-row {
