@@ -362,6 +362,18 @@
                     
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown ms-2">
+                            <a class="nav-link" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                🔔 <span id="notifCount" class="badge bg-danger">0</span>
+                            </a>
+                            <ul id="notifMenu" class="dropdown-menu dropdown-menu-end" style="min-width:260px;">
+                                <li class="dropdown-header">Notifications</li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li id="notifItems"><div class="px-3">Loading...</div></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="text-center"><a href="#" id="markAllRead" class="dropdown-item">Mark all read</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown ms-2">
                             <a class="nav-link dropdown-toggle profile-menu" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown">
                                 <span class="user-avatar">{{ user.first_name.0|upper }}</span>
                                 {{ user.first_name }}
@@ -390,7 +402,7 @@
                     {% endif %}
 
                 <li class="nav-item">
-                        <a class="nav-link" href="{% url 'find-blood' %}">🗺️Find Blood</a>
+                        <a class="nav-link" href="{% url 'find_blood' %}">🗺️Find Blood</a>
                     </li>
                     
                     
@@ -439,6 +451,68 @@
             const toggle = document.getElementById('themeToggle');
             toggle.textContent = theme === 'light' ? '🌙' : '☀️';
         }
+    </script>
+    <script>
+        // Notifications polling and UI
+        async function fetchNotifs() {
+            try {
+                const res = await fetch('/donor/notifications/api/');
+                if (!res.ok) return;
+                const data = await res.json();
+                const countEl = document.getElementById('notifCount');
+                const menuEl = document.getElementById('notifItems');
+                if (countEl) countEl.textContent = data.unread_count || 0;
+                if (menuEl) {
+                    if (!data.notifications || data.notifications.length === 0) {
+                        menuEl.innerHTML = '<div class="px-3">No notifications</div>';
+                    } else {
+                        menuEl.innerHTML = '';
+                        data.notifications.forEach(n => {
+                            const el = document.createElement('div');
+                            el.className = 'dropdown-item';
+                            el.innerHTML = `<div style="font-weight:600">${n.verb}</div><small class="text-muted">${new Date(n.created_at).toLocaleString()}</small>`;
+                            el.onclick = () => markRead(n.id);
+                            menuEl.appendChild(el);
+                        });
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function markRead(id) {
+            try {
+                const res = await fetch('/donor/notifications/mark-read/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${encodeURIComponent(id)}`
+                });
+                if (res.ok) fetchNotifs();
+            } catch (e) {}
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const markAll = document.getElementById('markAllRead');
+            if (markAll) markAll.addEventListener('click', (e) => { e.preventDefault(); fetch('/donor/notifications/mark-read/', {method:'POST', headers: {'X-CSRFToken': getCookie('csrftoken'), 'Content-Type':'application/x-www-form-urlencoded'}, body: 'id=all'}).then(()=>fetchNotifs()); });
+            fetchNotifs();
+            setInterval(fetchNotifs, 30000);
+        });
     </script>
 </body>
 </html>

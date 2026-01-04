@@ -28,14 +28,24 @@
 </select>
 
 <button onclick="loadData()">Search</button>
+<input type="text" id="searchQuery" placeholder="Search by name or address" style="margin-left:8px;padding:6px;border-radius:6px;border:1px solid #ccc;">
+<label style="margin-left:12px;">
+    <input type="checkbox" id="onlyVerified"> Show only verified donors
+</label>
 
 <div id="map"></div>
 
 <button onclick="setEmergency()">🚨 Emergency</button>
+<button id="addLocationBtn">📍 Add My Location</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+// Auth flag injected by view
+var isAuthenticated = false;
+{% if user_is_authenticated %}
+isAuthenticated = true;
+{% endif %}
 let map = L.map('map').setView([27.7172, 85.3240], 12);
 let markers = [];
 
@@ -52,18 +62,101 @@ function loadData() {
         let bg = document.getElementById('bloodGroup').value;
         let dist = document.getElementById('distance').value;
 
-        fetch(`/map-data/?lat=${lat}&lng=${lng}&blood_group=${bg}&distance=${dist}`)
+        const onlyVerified = document.getElementById('onlyVerified').checked ? 1 : 0;
+        const q = encodeURIComponent(document.getElementById('searchQuery').value || '');
+        fetch(`/donor/map-data/?lat=${lat}&lng=${lng}&blood_group=${bg}&distance=${dist}&only_verified=${onlyVerified}&q=${q}`)
             .then(res => res.json())
             .then(data => {
+                const bounds = [];
                 data.donors.forEach(d => {
-                    let m = L.marker([d.lat, d.lng])
-                        .bindPopup(`🩸 ${d.name}<br>${d.blood_group}<br>${d.distance} km`);
+                    // Skip unverified donors if toggle is set
+                    if (d.type === 'donor' && document.getElementById('onlyVerified').checked && !d.blood_type_verified) return;
+
+                    let iconHtml = '';
+                    if (d.type === 'donor') {
+                        const color = d.blood_type_verified ? '#1e7e34' : '#dc3545';
+                        iconHtml = `<div style="background:${color};width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">🩸</div>`;
+                    } else if (d.type === 'hospital') {
+                        iconHtml = `<div style="background:#0d6efd;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;">🏥</div>`;
+                    } else if (d.type === 'request') {
+                        iconHtml = `<div style="background:#ff8c00;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;">📢</div>`;
+                    }
+
+                    const myIcon = L.divIcon({ html: iconHtml, className: '' });
+                    const m = L.marker([d.lat, d.lng], { icon: myIcon });
+
+                    let popup = `<strong>${d.name}</strong><br>`;
+                    if (d.type === 'donor') {
+                        popup += `${d.blood_group} ${d.blood_type_verified ? '(Verified)' : '(Unverified)'}<br>`;
+                    } else if (d.type === 'hospital') {
+                        popup += `Hospital<br>`;
+                        // Add Request Blood button that preselects this hospital in the form
+                        if (d.hospital_id) {
+                            popup += `<a class="btn btn-sm btn-danger mt-2" href="/donor/request-blood/?hospital=${d.hospital_id}">Request Blood</a>`;
+                        }
+                    } else if (d.type === 'request') {
+                        popup += `Request: ${d.blood_group} x${d.quantity_needed || ''}<br>Needed by ${d.required_date || ''}`;
+                    }
+
+                    if (d.distance) popup += `<br>${d.distance} km away`;
+                    m.bindPopup(popup);
                     m.addTo(map);
                     markers.push(m);
+                    bounds.push([d.lat, d.lng]);
                 });
+                if (bounds.length) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
             });
     });
 }
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.getElementById('addLocationBtn').addEventListener('click', () => {
+    if (!isAuthenticated) {
+        alert('You must be logged in to save your location.');
+        window.location.href = '/donor/login';
+        return;
+    }
+    if (!navigator.geolocation) {
+        alert('Geolocation not supported');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        fetch('/donor/add-location/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ lat: lat, lng: lng }),
+            credentials: 'same-origin'
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'ok') {
+                alert('Location saved');
+                loadData();
+            } else {
+                alert('Error: ' + (data.message || 'Unable to save'));
+            }
+        });
+    }, err => alert('Unable to get location'));
+});
 
 function getMarkerIcon(group) {
     if (group === 'O+') return '🔴';
@@ -71,11 +164,6 @@ function getMarkerIcon(group) {
     if (group === 'B+') return '🔵';
     return '🟣';
 }
-donors.forEach(d => {
-      L.marker([d.lat, d.lng])
-       .addTo(map)
-       .bindPopup(`${getMarkerIcon(d.blood_group)} ${d.name}<br>${d.blood_group}`); 
-  });
   
 function setEmergency() {
     document.getElementById('distance').value = 20;

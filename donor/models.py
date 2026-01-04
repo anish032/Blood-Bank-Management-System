@@ -15,6 +15,9 @@ class Hospital(models.Model):
     address = models.TextField()
     contact_number = models.CharField(max_length=15)
     license_id = models.CharField(max_length=50, unique=True)
+    # Optional coordinates for hospital mapping
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -29,10 +32,17 @@ class Donor(models.Model):
     phone = models.CharField(validators=[nepal_phone_regex], max_length=10, unique=True)
     address = models.TextField()
     last_donation_date = models.DateField(null=True, blank=True)
+    # Optional coordinates for mapping
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
 
     is_phone_verified = models.BooleanField(default=False)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
+    # ID document for blood type verification (uploaded by donor)
+    id_document = models.FileField(upload_to='id_docs/', null=True, blank=True)
+    # Whether an admin has verified the donor's blood group using the ID document
+    blood_type_verified = models.BooleanField(default=False)
 
 
 
@@ -91,11 +101,17 @@ class DonationHistory(models.Model):
         return f"{self.donor.user.get_full_name()} - {self.donation_date}"
     ##########################################################################
 
-#donor/moder.py-mapmodel
-class Hospital(models.Model):
-    name = models.CharField(max_length=200)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+
+class Notification(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='notifications')
+    verb = models.CharField(max_length=255)
+    data = models.JSONField(null=True, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.name
+        return f"Notification to {self.user.username}: {self.verb}"
+

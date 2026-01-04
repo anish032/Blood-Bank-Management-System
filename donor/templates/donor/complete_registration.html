@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Complete Donor Registration</h2>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label>Full Name</label>
+                <input type="text" class="form-control" value="{{ user.get_full_name }}" disabled>
+            </div>
+            <div class="mb-3">
+                <label>Blood Group</label>
+                <select name="blood_group" class="form-control" required>
+                    {% for code,label in blood_groups %}
+                        <option value="{{ code }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Phone</label>
+                <input type="text" name="phone" class="form-control" placeholder="98xxxxxxxx" required>
+            </div>
+            <div class="mb-3">
+                <label>Address</label>
+                <textarea name="address" class="form-control" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label>Upload ID document (optional)</label>
+                <input type="file" name="id_document" class="form-control">
+            </div>
+            <button class="btn btn-primary" type="submit">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

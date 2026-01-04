@@ -21,7 +21,8 @@
         <a href="/donor/profile" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 50px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
           Go to Profile
         </a>
-      {% endif %}
+       {% endif %}
+      
     </div>
   </div>
 </div>
@@ -169,6 +170,10 @@
     transform: scale(1.1);
   }
 </style>
+
+ <a href="{% url 'find_blood' %}" class="btn btn-danger">
+    Find Blood
+</a>
 
 
 
