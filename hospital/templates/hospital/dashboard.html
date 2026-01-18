@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1 class="display-6 fw-bold" style="color: var(--text-primary);">
+            {{ hospital.hospital_name }}
+        </h1>
+        <p class="text-muted">{{ hospital.city }} | {{ hospital.phone }}</p>
+        {% if not hospital.is_verified %}
+            <div class="alert alert-warning">
+                ⚠️ Your hospital is pending verification. You cannot request blood until verified.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+            <div class="card-body p-4 text-white">
+                <h3 class="display-4 fw-bold">{{ pending_count }}</h3>
+                <p class="mb-0">Pending Requests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <div class="card-body p-4 text-white">
+                <h3 class="display-4 fw-bold">{{ approved_count }}</h3>
+                <p class="mb-0">Approved Requests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+            <div class="card-body p-4 text-white">
+                <h3 class="display-4 fw-bold">{{ requests.count }}</h3>
+                <p class="mb-0">Total Requests</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex gap-3">
+            {% if hospital.is_verified %}
+                <a href="/hospital/request-blood" class="btn btn-danger btn-lg" style="border-radius: 50px;">
+                    🩸 Request Blood
+                </a>
+            {% endif %}
+            <a href="/hospital/availability" class="btn btn-outline-primary btn-lg" style="border-radius: 50px;">
+                📊 Check Availability
+            </a>
+            <a href="/hospital/logout" class="btn btn-outline-secondary btn-lg" style="border-radius: 50px;">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Request History -->
+<div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+    <div class="card-header py-4" style="background: transparent; border-bottom: 1px solid var(--border-color);">
+        <h4 class="mb-0 fw-bold" style="color: var(--text-primary);">Request History</h4>
+    </div>
+    <div class="card-body p-4">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr style="border-color: var(--border-color);">
+                            <th style="color: var(--text-primary);">Date</th>
+                            <th style="color: var(--text-primary);">Blood Type</th>
+                            <th style="color: var(--text-primary);">Units</th>
+                            <th style="color: var(--text-primary);">Urgency</th>
+                            <th style="color: var(--text-primary);">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr style="border-color: var(--border-color);">
+                            <td style="color: var(--text-primary);">{{ req.requested_at|date:"M d, Y H:i" }}</td>
+                            <td><span class="badge bg-danger">{{ req.blood_group }}</span></td>
+                            <td style="color: var(--text-primary);">{{ req.units_needed }}</td>
+                            <td>
+                                {% if req.urgency == 'CRITICAL' %}
+                                    <span class="badge bg-danger">{{ req.urgency }}</span>
+                                {% elif req.urgency == 'URGENT' %}
+                                    <span class="badge bg-warning">{{ req.urgency }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ req.urgency }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if req.status == 'APPROVED' %}
+                                    <span class="badge bg-success">✓ {{ req.status }}</span>
+                                {% elif req.status == 'PENDING' %}
+                                    <span class="badge bg-warning">⏳ {{ req.status }}</span>
+                                {% elif req.status == 'REJECTED' %}
+                                    <span class="badge bg-danger">✗ {{ req.status }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ req.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">No requests yet</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

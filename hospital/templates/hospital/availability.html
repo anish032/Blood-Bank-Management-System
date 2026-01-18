@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+            <div class="card-header py-4" style="background: transparent; border-bottom: 1px solid var(--border-color);">
+                <h3 class="mb-0 fw-bold" style="color: var(--text-primary);">📊 Check Blood Availability</h3>
+            </div>
+            <div class="card-body p-5">
+                <form method="GET" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <select name="blood_group" class="form-control form-control-lg">
+                                <option value="">Select Blood Group</option>
+                                <option {% if blood_group == 'A+' %}selected{% endif %}>A+</option>
+                                <option {% if blood_group == 'A-' %}selected{% endif %}>A-</option>
+                                <option {% if blood_group == 'B+' %}selected{% endif %}>B+</option>
+                                <option {% if blood_group == 'B-' %}selected{% endif %}>B-</option>
+                                <option {% if blood_group == 'O+' %}selected{% endif %}>O+</option>
+                                <option {% if blood_group == 'O-' %}selected{% endif %}>O-</option>
+                                <option {% if blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                                <option {% if blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-danger w-100 btn-lg" style="border-radius: 50px;">
+                                Check
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                {% if donor_count is not None %}
+                    <div class="result-card p-5 text-center" style="background: var(--bg-secondary); border-radius: 15px;">
+                        <div class="mb-3">
+                            <span class="badge bg-danger fs-3 px-4 py-3">{{ blood_group }}</span>
+                        </div>
+                        <h2 class="display-3 fw-bold mb-2" style="color: var(--text-primary);">{{ donor_count }}</h2>
+                        <p class="text-muted mb-0">Eligible donors available</p>
+                        
+                        {% if donor_count >= 5 %}
+                            <div class="alert alert-success mt-4">
+                                ✓ Good availability for {{ blood_group }}
+                            </div>
+                        {% elif donor_count >= 2 %}
+                            <div class="alert alert-warning mt-4">
+                                ⚠ Limited availability for {{ blood_group }}
+                            </div>
+                        {% elif donor_count > 0 %}
+                            <div class="alert alert-danger mt-4">
+                                ⚡ Very low availability for {{ blood_group }}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger mt-4">
+                                ❌ No eligible donors available for {{ blood_group }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="text-center mt-4">
+                    <a href="/hospital/dashboard" class="btn btn-outline-secondary" style="border-radius: 50px;">
+                        ← Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

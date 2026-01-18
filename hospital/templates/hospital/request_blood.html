@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+            <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 20px 20px 0 0;">
+                <h3 class="mb-0 fw-bold">🩸 Request Blood</h3>
+            </div>
+            <div class="card-body p-5">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Blood Group *</label>
+                            <select name="blood_group" class="form-control" required>
+                                <option value="">Select Blood Group</option>
+                                <option>A+</option><option>A-</option>
+                                <option>B+</option><option>B-</option>
+                                <option>O+</option><option>O-</option>
+                                <option>AB+</option><option>AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Units Needed *</label>
+                            <input type="number" name="units_needed" class="form-control" required min="1" max="10">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Urgency Level *</label>
+                        <select name="urgency" class="form-control" required>
+                            <option value="">Select Urgency</option>
+                            <option value="CRITICAL">🔴 Critical - Life Threatening</option>
+                            <option value="URGENT">🟡 Urgent - Within 24 hours</option>
+                            <option value="ROUTINE">🟢 Routine - Within a week</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Patient Case Details *</label>
+                        <textarea name="patient_case" class="form-control" required rows="4" 
+                                  placeholder="Describe the medical case, surgery type, or reason for blood requirement"></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-danger px-5" style="border-radius: 50px;">
+                            Submit Request
+                        </button>
+                        <a href="/hospital/dashboard" class="btn btn-outline-secondary px-4" style="border-radius: 50px;">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

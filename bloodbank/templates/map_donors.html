@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1 class="display-6 fw-bold" style="color: var(--text-primary);">🗺️ Find Nearest Donors</h1>
+        <p class="text-muted">Search donors by blood group and location</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4" style="color: var(--text-primary);">Search Filters</h5>
+                
+                <form method="GET">
+                    <div class="mb-3">
+                        <label class="form-label">Blood Group *</label>
+                        <select name="blood_group" class="form-control" required>
+                            <option value="">Select Blood Group</option>
+                            <option {% if blood_group == 'A+' %}selected{% endif %}>A+</option>
+                            <option {% if blood_group == 'A-' %}selected{% endif %}>A-</option>
+                            <option {% if blood_group == 'B+' %}selected{% endif %}>B+</option>
+                            <option {% if blood_group == 'B-' %}selected{% endif %}>B-</option>
+                            <option {% if blood_group == 'O+' %}selected{% endif %}>O+</option>
+                            <option {% if blood_group == 'O-' %}selected{% endif %}>O-</option>
+                            <option {% if blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                            <option {% if blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Search Radius</label>
+                        <select name="radius" class="form-control">
+                            <option value="5" {% if radius == '5' %}selected{% endif %}>Within 5 km</option>
+                            <option value="10" {% if radius == '10' %}selected{% endif %}>Within 10 km</option>
+                            <option value="25" {% if radius == '25' %}selected{% endif %}>Within 25 km</option>
+                            <option value="50" {% if radius == '50' %}selected{% endif %}>Within 50 km</option>
+                            <option value="100" {% if radius == '100' %}selected{% endif %}>All</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger w-100" style="border-radius: 50px;">
+                        🔍 Search Donors
+                    </button>
+                </form>
+                
+                {% if donors %}
+                    <div class="mt-4">
+                        <h6 class="fw-bold" style="color: var(--text-primary);">Results: {{ donors|length }} donor(s)</h6>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        {% if blood_group %}
+            {% if donors %}
+                <!-- Donor List -->
+                <div class="card border-0 shadow-sm mb-3" style="border-radius: 20px; background: var(--card-bg);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4" style="color: var(--text-primary);">Found {{ donors|length }} Eligible Donors</h5>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr style="border-color: var(--border-color);">
+                                        <th style="color: var(--text-primary);">Donor</th>
+                                        <th style="color: var(--text-primary);">Blood Group</th>
+                                        <th style="color: var(--text-primary);">Phone</th>
+                                        <th style="color: var(--text-primary);">City</th>
+                                        <th style="color: var(--text-primary);">Distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for donor in donors %}
+                                    <tr style="border-color: var(--border-color);">
+                                        <td style="color: var(--text-primary);">{{ donor.user.first_name }} {{ donor.user.last_name }}</td>
+                                        <td><span class="badge bg-danger">{{ donor.blood_group }}</span></td>
+                                        <td style="color: var(--text-primary);">{{ donor.phone }}</td>
+                                        <td style="color: var(--text-primary);">{{ donor.city }}</td>
+                                        <td style="color: var(--text-primary);">
+                                            {% if donor.distance %}
+                                                {{ donor.distance|floatformat:1 }} km
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Map -->
+                <div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+                    <div class="card-body p-0">
+                        <div id="map" style="height: 500px; border-radius: 20px;"></div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    ⚠️ No eligible donors found for {{ blood_group }} in selected radius
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-3" style="font-size: 4rem;">🗺️</div>
+                    <h5 style="color: var(--text-primary);">Select blood group to search</h5>
+                    <p class="text-muted">Choose filters from the left panel to find donors</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+{% if donors and blood_group %}
+    // Initialize map centered on Biratnagar
+    const map = L.map('map').setView([26.4525, 87.2718], 12);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add markers for donors
+    {% for donor in donors %}
+        {% if donor.latitude and donor.longitude %}
+            L.marker([{{ donor.latitude }}, {{ donor.longitude }}])
+                .addTo(map)
+                .bindPopup('<b>{{ donor.user.first_name }} {{ donor.user.last_name }}</b><br>{{ donor.blood_group }}<br>{{ donor.phone }}');
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</script>
+{% endblock %}

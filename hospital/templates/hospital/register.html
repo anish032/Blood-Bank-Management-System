@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+            <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 20px 20px 0 0;">
+                <h3 class="mb-0 fw-bold">🏥 Hospital Registration</h3>
+            </div>
+            <div class="card-body p-5">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hospital Name *</label>
+                            <input type="text" name="hospital_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Registration Number *</label>
+                            <input type="text" name="registration_number" class="form-control" required>
+                            <small class="text-muted">Official hospital registration number</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" name="email" class="form-control" required 
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password *</label>
+                            <input type="password" name="password" class="form-control" required minlength="6">
+                            <small class="text-muted">Minimum 6 characters</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone *</label>
+                            <input type="text" name="phone" class="form-control" required 
+                                   pattern="9[0-9]{9}" placeholder="98XXXXXXXX">
+                            <small class="text-muted">10 digits starting with 9</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">City *</label>
+                            <input type="text" name="city" class="form-control" required 
+                                   placeholder="e.g., Biratnagar">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Address *</label>
+                        <textarea name="address" class="form-control" required rows="3"></textarea>
+                    </div>
+                    <!-- Hidden fields for GPS coordinates -->
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary w-100" onclick="getLocation()" id="locationBtn">
+                            📍 Capture Hospital Location (Optional)
+                        </button>
+                        <small class="text-muted" id="locationStatus">Click to automatically detect hospital location</small>
+                    </div>
+                    
+                    <script>
+                    function getLocation() {
+                        const btn = document.getElementById('locationBtn');
+                        const status = document.getElementById('locationStatus');
+                        
+                        if (navigator.geolocation) {
+                            btn.disabled = true;
+                            btn.textContent = '⏳ Getting location...';
+                            
+                            navigator.geolocation.getCurrentPosition(
+                                function(position) {
+                                    document.getElementById('latitude').value = position.coords.latitude;
+                                    document.getElementById('longitude').value = position.coords.longitude;
+                                    btn.textContent = '✓ Location Captured';
+                                    btn.classList.remove('btn-outline-primary');
+                                    btn.classList.add('btn-success');
+                                    status.textContent = 'Location: ' + position.coords.latitude.toFixed(4) + ', ' + position.coords.longitude.toFixed(4);
+                                    status.style.color = 'green';
+                                },
+                                function(error) {
+                                    btn.disabled = false;
+                                    btn.textContent = '📍 Try Again';
+                                    status.textContent = 'Location access denied. You can still register without it.';
+                                    status.style.color = 'orange';
+                                }
+                            );
+                        } else {
+                            status.textContent = 'Geolocation not supported by your browser';
+                            status.style.color = 'red';
+                        }
+                    }
+                    </script>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-danger px-5" style="border-radius: 50px;">
+                            Register Hospital
+                        </button>
+                        <a href="/hospital/login" class="btn btn-outline-secondary px-4" style="border-radius: 50px;">
+                            Already registered? Login
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

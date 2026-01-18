@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb" style="background: transparent;">
+        <li class="breadcrumb-item"><a href="/" style="color: var(--text-primary);">Home</a></li>
+        <li class="breadcrumb-item"><a href="/hospital/dashboard" style="color: var(--text-primary);">Dashboard</a></li>
+        <li class="breadcrumb-item active">Profile</li>
+    </ol>
+</nav>
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="display-6 fw-bold" style="color: var(--text-primary);">Hospital Profile</h1>
+                <p class="text-muted">View your hospital information</p>
+            </div>
+            <a href="/hospital/dashboard" class="btn btn-outline-secondary" style="border-radius: 50px;">
+                ← Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+            <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                <h4 class="mb-0 fw-bold">🏥 {{ hospital.hospital_name }}</h4>
+            </div>
+            <div class="card-body p-5">
+                <!-- Verification Status -->
+                <div class="mb-4 p-4" style="background: var(--bg-secondary); border-radius: 15px;">
+                    <h5 class="fw-bold mb-3" style="color: var(--text-primary);">Verification Status</h5>
+                    {% if hospital.is_verified %}
+                        <div class="alert alert-success mb-0">
+                            <div class="d-flex align-items-center">
+                                <span class="fs-3 me-3">✅</span>
+                                <div>
+                                    <strong>Verified Hospital</strong>
+                                    <p class="mb-0 small">You can request blood and access all features</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-0">
+                            <div class="d-flex align-items-center">
+                                <span class="fs-3 me-3">⏳</span>
+                                <div>
+                                    <strong>Pending Verification</strong>
+                                    <p class="mb-0 small">Your hospital is awaiting admin approval. This usually takes 1-2 business days.</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Hospital Details -->
+                <h5 class="fw-bold mb-4" style="color: var(--text-primary);">Hospital Information</h5>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">Hospital Name</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.hospital_name }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">Registration Number</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.registration_number }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">Email</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.user.email }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">Phone</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.phone }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">City</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.city }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">Registered On</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <div class="info-item p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                            <label class="text-muted small mb-1">Address</label>
+                            <p class="mb-0 fw-semibold" style="color: var(--text-primary);">{{ hospital.address }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

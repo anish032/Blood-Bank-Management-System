@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+            <div class="card-header py-4" style="background: transparent; border-bottom: 1px solid var(--border-color);">
+                <h3 class="mb-0 fw-bold" style="color: var(--text-primary);">🔍 Search Eligible Donors</h3>
+            </div>
+            <div class="card-body p-5">
+                <form method="GET" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <select name="blood_group" class="form-control form-control-lg">
+                                <option value="">Select Blood Group</option>
+                                <option {% if blood_group == 'A+' %}selected{% endif %}>A+</option>
+                                <option {% if blood_group == 'A-' %}selected{% endif %}>A-</option>
+                                <option {% if blood_group == 'B+' %}selected{% endif %}>B+</option>
+                                <option {% if blood_group == 'B-' %}selected{% endif %}>B-</option>
+                                <option {% if blood_group == 'O+' %}selected{% endif %}>O+</option>
+                                <option {% if blood_group == 'O-' %}selected{% endif %}>O-</option>
+                                <option {% if blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                                <option {% if blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-danger w-100 btn-lg" style="border-radius: 50px;">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                {% if blood_group %}
+                    <div class="alert alert-info mb-4">
+                        <strong>Searching for:</strong> {{ blood_group }} blood group donors
+                    </div>
+                    
+                    {% if donors %}
+                        <h5 class="mb-3 fw-bold" style="color: var(--text-primary);">Found {{ donors|length }} eligible donor(s)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr style="border-color: var(--border-color);">
+                                        <th style="color: var(--text-primary);">Name</th>
+                                        <th style="color: var(--text-primary);">Blood Group</th>
+                                        <th style="color: var(--text-primary);">Phone</th>
+                                        <th style="color: var(--text-primary);">Address</th>
+                                        <th style="color: var(--text-primary);">Last Donation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for donor in donors %}
+                                    <tr style="border-color: var(--border-color);">
+                                        <td style="color: var(--text-primary);">{{ donor.user.first_name }} {{ donor.user.last_name }}</td>
+                                        <td><span class="badge bg-danger">{{ donor.blood_group }}</span></td>
+                                        <td style="color: var(--text-primary);">{{ donor.phone }}</td>
+                                        <td style="color: var(--text-primary);">{{ donor.address|truncatewords:5 }}</td>
+                                        <td style="color: var(--text-primary);">{{ donor.last_donation_date|default:"Never" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            ⚠️ No eligible donors found for {{ blood_group }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <div class="text-center mt-4">
+                    <a href="/manage-requests" class="btn btn-outline-secondary" style="border-radius: 50px;">
+                        ← Back to Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

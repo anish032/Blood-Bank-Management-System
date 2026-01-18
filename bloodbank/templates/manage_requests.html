@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1 class="display-6 fw-bold" style="color: var(--text-primary);">Manage Blood Requests</h1>
+        <p class="text-muted">Approve or reject hospital blood requests</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex gap-3">
+            <a href="/dashboard" class="btn btn-outline-primary" style="border-radius: 50px;">📊 Dashboard</a>
+            <a href="/search-donors" class="btn btn-outline-success" style="border-radius: 50px;">🔍 Search Donors</a>
+            <a href="/map-donors" class="btn btn-outline-info" style="border-radius: 50px;">🗺️ Map View</a>
+            <a href="/admin" class="btn btn-outline-secondary" style="border-radius: 50px;">⚙️ Admin Panel</a>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Requests -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; background: var(--card-bg);">
+    <div class="card-header py-4" style="background: transparent; border-bottom: 1px solid var(--border-color);">
+        <h4 class="mb-0 fw-bold" style="color: var(--text-primary);">🔔 Pending Requests ({{ pending_requests.count }})</h4>
+    </div>
+    <div class="card-body p-4">
+        {% if pending_requests %}
+            {% for req in pending_requests %}
+            <div class="request-card p-4 mb-3" style="background: var(--bg-secondary); border-radius: 15px; border-left: 4px solid {% if req.urgency == 'CRITICAL' %}#dc3545{% elif req.urgency == 'URGENT' %}#ffc107{% else %}#0dcaf0{% endif %};">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">{{ req.hospital.hospital_name }}</h5>
+                            <span class="badge bg-danger">{{ req.blood_group }}</span>
+                            {% if req.urgency == 'CRITICAL' %}
+                                <span class="badge bg-danger">🔴 CRITICAL</span>
+                            {% elif req.urgency == 'URGENT' %}
+                                <span class="badge bg-warning">🟡 URGENT</span>
+                            {% else %}
+                                <span class="badge bg-info">🟢 ROUTINE</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted mb-2"><strong>Units:</strong> {{ req.units_needed }} | <strong>Requested:</strong> {{ req.requested_at|date:"M d, Y H:i" }}</p>
+                        <p class="mb-2" style="color: var(--text-primary);"><strong>Case:</strong> {{ req.patient_case }}</p>
+                        <small class="text-muted">{{ req.hospital.city }} | {{ req.hospital.phone }}</small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="request_id" value="{{ req.id }}">
+                            <button type="submit" name="action" value="approve" class="btn btn-success mb-2 w-100" style="border-radius: 50px;">
+                                ✓ Approve
+                            </button>
+                            <button type="button" class="btn btn-danger w-100" style="border-radius: 50px;" data-bs-toggle="modal" data-bs-target="#rejectModal{{ req.id }}">
+                                ✗ Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reject Modal -->
+            <div class="modal fade" id="rejectModal{{ req.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content" style="background: var(--card-bg);">
+                        <div class="modal-header" style="border-color: var(--border-color);">
+                            <h5 class="modal-title" style="color: var(--text-primary);">Reject Request</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <input type="hidden" name="action" value="reject">
+                                <label class="form-label">Reason for rejection:</label>
+                                <textarea name="remarks" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <div class="modal-footer" style="border-color: var(--border-color);">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Reject Request</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">No pending requests</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Requests -->
+<div class="card border-0 shadow-sm" style="border-radius: 20px; background: var(--card-bg);">
+    <div class="card-header py-4" style="background: transparent; border-bottom: 1px solid var(--border-color);">
+        <h4 class="mb-0 fw-bold" style="color: var(--text-primary);">Recent Requests</h4>
+    </div>
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr style="border-color: var(--border-color);">
+                        <th style="color: var(--text-primary);">Hospital</th>
+                        <th style="color: var(--text-primary);">Blood</th>
+                        <th style="color: var(--text-primary);">Units</th>
+                        <th style="color: var(--text-primary);">Date</th>
+                        <th style="color: var(--text-primary);">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in all_requests %}
+                    <tr style="border-color: var(--border-color);">
+                        <td style="color: var(--text-primary);">{{ req.hospital.hospital_name }}</td>
+                        <td><span class="badge bg-danger">{{ req.blood_group }}</span></td>
+                        <td style="color: var(--text-primary);">{{ req.units_needed }}</td>
+                        <td style="color: var(--text-primary);">{{ req.requested_at|date:"M d" }}</td>
+                        <td>
+                            {% if req.status == 'APPROVED' %}
+                                <span class="badge bg-success">✓ Approved</span>
+                            {% elif req.status == 'PENDING' %}
+                                <span class="badge bg-warning">⏳ Pending</span>
+                            {% elif req.status == 'REJECTED' %}
+                                <span class="badge bg-danger">✗ Rejected</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ req.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
